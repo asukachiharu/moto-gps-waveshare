@@ -94,9 +94,9 @@ struct ContentView: View {
         case .device: MapDevicePanel(model: model)
         case .settings: NavigationSettingsPanel(model: model)
         case .downloads:
-            MapDownloadsView(store: model.surroundingMap, gatewayBaseURL: model.mapGatewayBaseURL,
+            MapDownloadsView(onClose: { open(.home) }, store: model.surroundingMap, gatewayBaseURL: model.mapGatewayBaseURL,
                              route: model.mapDownloadRoute, destinationName: model.selectedPlace?.name)
-        case .privacy: DataUseView()
+        case .privacy: DataUseView(onClose: { open(.home) })
         }
     }
     private var colorScheme: ColorScheme? { appearance == "light" ? .light : appearance == "dark" ? .dark : nil }

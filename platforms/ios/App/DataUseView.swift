@@ -3,6 +3,7 @@ import SwiftUI
 /// Available without a connection, so permission and storage information can
 /// still be read when the gateway or the accessory is unavailable.
 struct DataUseView: View {
+    var onClose: (() -> Void)? = nil
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
@@ -36,7 +37,7 @@ struct DataUseView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("完成") { dismiss() }
+                    Button("完成") { if let onClose { onClose() } else { dismiss() } }
                         .accessibilityIdentifier("privacy-data-done")
                 }
             }

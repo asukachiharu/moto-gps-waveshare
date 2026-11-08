@@ -14,3 +14,10 @@ Windows has no Swift/Xcode. Cloud Xcode 27.1 device build and simulator tests ar
 The original protocol, navigation core and ESP firmware have not changed. No flashing,
 certificate installation or runner registration has been performed. Real BLE/background
 reliability still needs paired iPhone and round-screen testing.
+
+Migrated the old List/push-navigation UI scripts to offline map-panel tests. Live
+city search and demo UI entry scripts no longer describe this UI. SDK and real
+navigation acceptance are not claimed by these offline tests. Device packaging
+runs independently of UI tests so its failure/success is visible separately.
+ESP-IDF 5.5.5 firmware build succeeded locally (not flashed); dependency resolver
+updated the local lock, which is excluded from UI commits pending pin review.

@@ -81,6 +81,7 @@ final class MapCitySearch: ObservableObject {
 }
 
 struct MapDownloadsView: View {
+    var onClose: (() -> Void)? = nil
     @ObservedObject var store: SurroundingMapStore
     let gatewayBaseURL: URL
     let route: [GCJ02Point]
@@ -174,7 +175,7 @@ struct MapDownloadsView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("完成") { dismiss() }.accessibilityIdentifier("map-downloads-done")
+                    Button("完成") { if let onClose { onClose() } else { dismiss() } }.accessibilityIdentifier("map-downloads-done")
                 }
             }
             .accessibilityIdentifier("map-downloads-sheet")
