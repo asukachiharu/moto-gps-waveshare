@@ -9,6 +9,8 @@ final class AppModel: ObservableObject {
     @Published private(set) var navigationFailure: String?
     @Published private(set) var isNavigationActive = false
     @Published private(set) var isDemoActive = false
+    @Published private(set) var latestFix: NavigationFix?
+    @Published private(set) var mapLocation: WGS84Point?
 
     @Published var destinationQuery = ""
     @Published private(set) var placeResults: [PlaceSearchResult] = []
@@ -73,6 +75,7 @@ final class AppModel: ObservableObject {
         }
         searchLocation.onLocationChange = { [weak self] point in
             guard let self else { return }
+            self.mapLocation = point
             let query = self.destinationQuery.trimmingCharacters(in: .whitespacesAndNewlines)
             if point != nil, self.selectedPlace == nil, query.count >= 2 {
                 // A fresh one-shot fix may arrive after a nationwide request
@@ -123,6 +126,13 @@ final class AppModel: ObservableObject {
         placeSearchTask?.cancel()
         routePreviewTask?.cancel()
     }
+
+    var isNavigationServiceConfigured: Bool { isGatewayConfigured }
+    var mapDisplayRoutes: [RoutePreviewCandidate] {
+        if isNavigationActive, let route = runtime?.activeRoutePlan { return [RoutePreviewCandidate(ordinal: 0, route: route)] }
+        return routePreviewCandidates
+    }
+    func refreshMapLocation() { searchLocation.prepare() }
 
     var isGatewayConfigured: Bool {
         (try? GatewayConfiguration.normalizedURL(mapGatewayBaseURL.absoluteString)) != nil
@@ -428,6 +438,10 @@ final class AppModel: ObservableObject {
     }
 
     private func bind(_ runtime: SharedNavigationRuntime) {
+        runtime.onFix = { [weak self] fix in
+            self?.latestFix = fix
+            self?.mapLocation = fix.coordinate
+        }
         runtime.onSnapshot = { [weak self] snapshot in
             self?.navigation = snapshot
             if snapshot.stateName == "navigating" || snapshot.stateName == "arrived" {

@@ -16,7 +16,9 @@ concurrency:
 
 jobs:
   ios:
-    runs-on: macos-latest
+    runs-on: xcode-27
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_27.1.app/Contents/Developer
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
@@ -37,14 +39,14 @@ jobs:
           if not iphones:
               raise SystemExit('No iPhone simulator is installed')
           with open(os.environ['GITHUB_OUTPUT'], 'a') as out:
-              out.write('id=' + iphones[0]['udid'] + '\n')
+              out.write('id=' + next((d for d in iphones if d['name'] == 'iPhone Duo'), iphones[0])['udid'] + '\n')
           PY
       - name: App unit tests and offline gateway UI tests
         run: |
           xcodebuild test -project platforms/ios/MotoGPS.xcodeproj -scheme MotoGPS \
             -destination 'platform=iOS Simulator,id=${{ steps.simulator.outputs.id }}' \
             -derivedDataPath build/ios-tests -resultBundlePath build/GatewayTests.xcresult \
-            -only-testing:MotoGPSUnitTests -only-testing:MotoGPSUITests/GatewaySettingsUITests \
+            -only-testing:MotoGPSUnitTests -only-testing:MotoGPSUITests \
             CODE_SIGNING_ALLOWED=NO
       - name: Build unsigned IPA for re-signing
         run: scripts/ios/build_sideload_ipa.sh

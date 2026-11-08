@@ -4,7 +4,7 @@ options:
   bundleIdPrefix: org.example
   deploymentTarget:
     iOS: "17.0"
-  xcodeVersion: "16.0"
+  xcodeVersion: "27.1"
   createIntermediateGroups: true
 
 packages:
@@ -61,16 +61,18 @@ targets:
         MOTOGPSGatewayBaseURL: https://example.invalid/moto-gps/api/
         UISupportedInterfaceOrientations:
           - UIInterfaceOrientationPortrait
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
         UIApplicationSceneManifest:
           UIApplicationSupportsMultipleScenes: false
     entitlements:
       path: App/MotoGPS.entitlements
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: org.example.motogps
+        PRODUCT_BUNDLE_IDENTIFIER: ink.yhm.MotoNav
         PRODUCT_NAME: MOTO GPS
-        MARKETING_VERSION: 0.3.1
-        CURRENT_PROJECT_VERSION: 6
+        MARKETING_VERSION: 0.4.0
+        CURRENT_PROJECT_VERSION: 7
         SWIFT_VERSION: 5.0
         SWIFT_STRICT_CONCURRENCY: targeted
         SWIFT_OBJC_BRIDGING_HEADER: App/MotoGPS-Bridging-Header.h
@@ -86,7 +88,7 @@ targets:
         ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
         CODE_SIGN_STYLE: Automatic
         DEVELOPMENT_TEAM: ""
-        TARGETED_DEVICE_FAMILY: "1"
+        TARGETED_DEVICE_FAMILY: "1,2"
 
   MotoGPSUITests:
     type: bundle.ui-testing
@@ -97,7 +99,7 @@ targets:
       - target: MotoGPS
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: org.example.motogps.uitests
+        PRODUCT_BUNDLE_IDENTIFIER: ink.yhm.MotoNav.uitests
         SWIFT_VERSION: 5.0
         TEST_TARGET_NAME: MotoGPS
         GENERATE_INFOPLIST_FILE: YES
@@ -113,7 +115,7 @@ targets:
       - target: MotoGPS
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: org.example.motogps.unittests
+        PRODUCT_BUNDLE_IDENTIFIER: ink.yhm.MotoNav.unittests
         SWIFT_VERSION: 5.0
         GENERATE_INFOPLIST_FILE: YES
         TEST_HOST: $(BUILT_PRODUCTS_DIR)/MOTO GPS.app/MOTO GPS

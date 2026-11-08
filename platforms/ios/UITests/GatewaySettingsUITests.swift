@@ -10,6 +10,7 @@ final class GatewaySettingsUITests: XCTestCase {
         let setup = app.buttons["gateway-setup-button"]
         XCTAssertTrue(setup.waitForExistence(timeout: 10))
         setup.tap()
+        app.buttons["gateway-settings-link"].tap()
         let field = app.textFields["gateway-address-field"].exists
             ? app.textFields["gateway-address-field"] : app.textViews["gateway-address-field"]
         XCTAssertTrue(field.waitForExistence(timeout: 5))
@@ -17,14 +18,16 @@ final class GatewaySettingsUITests: XCTestCase {
         field.typeText("https://nav.example.com/moto-gps/api")
         keepScreenshot(app, "Gateway address entry")
         app.buttons["gateway-save-button"].tap()
-        XCTAssertTrue(app.textFields["destination-search-field"].waitForExistence(timeout: 5))
+        app.buttons["panel-close"].tap()
+        XCTAssertTrue(app.buttons["open-search"].waitForExistence(timeout: 5))
         XCTAssertFalse(app.buttons["gateway-setup-button"].exists)
         app.terminate()
         app.launchArguments = ["--moto-ui-offline"]
         app.launch()
-        let settings = app.buttons["gateway-settings-toolbar"]
+        let settings = app.buttons["open-settings"]
         XCTAssertTrue(settings.waitForExistence(timeout: 5))
         settings.tap()
+        app.buttons["gateway-settings-link"].tap()
         let saved = app.descendants(matching: .any).matching(identifier: "gateway-address-field").firstMatch
         XCTAssertTrue(saved.waitForExistence(timeout: 5))
         XCTAssertEqual(saved.value as? String, "https://nav.example.com/moto-gps/api/")
@@ -38,6 +41,7 @@ final class GatewaySettingsUITests: XCTestCase {
         let setup = app.buttons["gateway-setup-button"]
         XCTAssertTrue(setup.waitForExistence(timeout: 10))
         setup.tap()
+        app.buttons["gateway-settings-link"].tap()
         let field = app.descendants(matching: .any).matching(identifier: "gateway-address-field").firstMatch
         XCTAssertTrue(field.waitForExistence(timeout: 5))
         field.tap()

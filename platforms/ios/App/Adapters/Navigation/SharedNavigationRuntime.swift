@@ -5,6 +5,7 @@ import MotoNavigationCore
 /// It contains no route matching, maneuver progression, reroute or traffic policy.
 @MainActor
 final class SharedNavigationRuntime {
+    var onFix: ((NavigationFix) -> Void)?
     var onSnapshot: ((MotoNavCoreSnapshot) -> Void)?
     var onFailure: ((String) -> Void)?
 
@@ -18,6 +19,7 @@ final class SharedNavigationRuntime {
 
     /// The accepted route may change after a reroute. Offline downloads must
     /// follow this geometry instead of the original route-preview candidate.
+    var activeRoutePlan: RoutePlan? { activeRoute?.plan }
     var activeRoutePolyline: [GCJ02Point] { activeRoute?.plan.polyline ?? [] }
 
     private struct ActiveRoute {
@@ -98,6 +100,7 @@ final class SharedNavigationRuntime {
     }
 
     private func accept(_ fix: NavigationFix) {
+        onFix?(fix)
         let commands = bridge.pushFixLongitude(
             fix.coordinate.longitudeDeg,
             latitude: fix.coordinate.latitudeDeg,
