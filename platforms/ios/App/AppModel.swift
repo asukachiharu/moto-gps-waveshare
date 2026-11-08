@@ -63,7 +63,12 @@ final class AppModel: ObservableObject {
         let provider = NavigationProviderRouter(mode: mode, baseURL: gatewayBaseURL, sdk: sdk)
         liveRouteProvider = provider; placeProvider = provider
         mapGatewayBaseURL = gatewayBaseURL
-        let mapLoader: MapTileCache.Loader? = mode == .sdk ? { tile in try await direct.load(tile) } : nil
+        let mapLoader: MapTileCache.Loader?
+        if mode == .sdk {
+            mapLoader = { tile in try await direct.load(tile) }
+        } else {
+            mapLoader = nil
+        }
         surroundingMap = SurroundingMapStore(baseURL: gatewayBaseURL, loader: mapLoader)
         recentPlaces = Self.loadRecentPlaces()
         sdkHasKey = sdk.hasKey; sdkPrivacyAgreed = sdk.consent

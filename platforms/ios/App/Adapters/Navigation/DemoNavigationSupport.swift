@@ -197,14 +197,14 @@ final class DemoNavigationLocationSource: NavigationLocationSource {
     }
 }
 
-/// Uses the existing AMap gateway for every demo route request. If the test
+/// Uses the selected real provider for every explicit demo route request. If the test
 /// phone has no network, it falls back to the checked-in OSM/ODbL route so the
 /// hardware demo remains usable without persisting an AMap response in source.
 final class DemoNavigationRouteProvider: NavigationRouteProviding, @unchecked Sendable {
-    private let liveProvider: AmapGatewayRouteProvider
+    private let liveProvider: any NavigationRouteProviding
     private let session: DemoNavigationSession
 
-    init(liveProvider: AmapGatewayRouteProvider, session: DemoNavigationSession) {
+    init(liveProvider: any NavigationRouteProviding, session: DemoNavigationSession) {
         self.liveProvider = liveProvider
         self.session = session
     }

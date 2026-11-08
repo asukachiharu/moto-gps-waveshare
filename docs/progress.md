@@ -46,3 +46,8 @@ fork uses C++/Swift/Node test suites); Python packaging scripts compile. Swift
 and Xcode are unavailable locally; device SDK link, direct-map Swift 6 tests
 and new mapper tests are submitted to cloud CI before acceptance. Firmware
 source/protocol remains unchanged and the local resolver lock is not committed.
+
+Cloud 42489142475: Swift core and DirectMapCore tests passed on Swift 6.
+Device and simulator app builds caught a closure type-inference failure and
+a concrete gateway type remaining in the explicit demo adapter. Both were
+corrected before resubmission. No passing IPA is claimed for this failed run.
