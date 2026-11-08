@@ -4,7 +4,7 @@ import XCTest
     override func setUpWithError() throws { continueAfterFailure = false }
     private func launch() -> XCUIApplication {
         let app = XCUIApplication()
-        app.launchArguments = ["--moto-ui-offline", "--moto-reset-gateway"]
+        app.launchArguments = ["--moto-ui-offline", "--moto-provider-gateway", "--moto-reset-gateway"]
         app.launch(); return app
     }
     func testHomePanelHidesAndRestoresAllShortcuts() {

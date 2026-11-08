@@ -5,7 +5,7 @@ final class GatewaySettingsUITests: XCTestCase {
 
     func testSaveGatewayPersistsAcrossLaunches() {
         let app = XCUIApplication()
-        app.launchArguments = ["--moto-ui-offline", "--moto-reset-gateway"]
+        app.launchArguments = ["--moto-ui-offline", "--moto-provider-gateway", "--moto-reset-gateway"]
         app.launch()
         let setup = app.buttons["gateway-setup-button"]
         XCTAssertTrue(setup.waitForExistence(timeout: 10))
@@ -22,7 +22,7 @@ final class GatewaySettingsUITests: XCTestCase {
         XCTAssertTrue(app.buttons["open-search"].waitForExistence(timeout: 5))
         XCTAssertFalse(app.buttons["gateway-setup-button"].exists)
         app.terminate()
-        app.launchArguments = ["--moto-ui-offline"]
+        app.launchArguments = ["--moto-ui-offline", "--moto-provider-gateway"]
         app.launch()
         let settings = app.buttons["open-settings"]
         XCTAssertTrue(settings.waitForExistence(timeout: 5))
@@ -36,7 +36,7 @@ final class GatewaySettingsUITests: XCTestCase {
 
     func testInvalidAddressStaysInSettingsAndExplainsError() {
         let app = XCUIApplication()
-        app.launchArguments = ["--moto-ui-offline", "--moto-reset-gateway"]
+        app.launchArguments = ["--moto-ui-offline", "--moto-provider-gateway", "--moto-reset-gateway"]
         app.launch()
         let setup = app.buttons["gateway-setup-button"]
         XCTAssertTrue(setup.waitForExistence(timeout: 10))

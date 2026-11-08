@@ -1,0 +1,17 @@
+{
+  "libraries": [
+    {
+      "file": "AMap_iOS_Navi_Lib_V11.3.100.zip",
+      "url": "https://a.amap.com/lbs/static/zip/AMap_iOS_Navi_Lib_V11.3.100.zip",
+      "bytes": 131585128,
+      "sha256": "b6704b432c0b6f9618c8e60d5ac82123b1715ea601bf8e1e0432057836713930"
+    },
+    {
+      "file": "AMap_iOS_Foundation_Lib_V1.9.4_20260904.zip",
+      "url": "https://a.amap.com/lbs/static/zip/AMap_iOS_Foundation_Lib_V1.9.4.zip",
+      "bytes": 850700,
+      "sha256": "d89ea0f271b49f63ad0b976e9bc4af25cb3b2c2896764d547af0729a903ce39a"
+    }
+  ],
+  "note": "Official standalone libraries, byte-identical to the corresponding pinned ALL archive members. Navi includes the map."
+}

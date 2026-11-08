@@ -28,6 +28,8 @@ jobs:
         run: |
           command -v xcodegen || brew install xcodegen
           xcodebuild -version
+          swift test --package-path platforms/ios
+          if [ -d shared/direct_map ]; then swift test --package-path shared/direct_map; fi
           xcodegen generate --spec platforms/ios/project.yml
       - name: Select available iPhone simulator
         id: simulator

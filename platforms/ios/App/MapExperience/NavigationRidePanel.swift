@@ -23,7 +23,7 @@ struct NavigationRidePanel: View {
                 if expanded {
                     Text(model.activeDestinationName).font(.title3.bold())
                     HStack {
-                        Label(model.navigation.hasUsableFix ? "\(Int((max(0, model.navigation.speedMPS) * 3.6).rounded())) km/h" : "速度暂不可用", systemImage: "speedometer")
+                        Label(model.navigation.hasUsableFix && model.latestFix?.speedMps != nil ? "\(Int((max(0, model.latestFix?.speedMps ?? 0) * 3.6).rounded())) km/h" : "速度暂不可用", systemImage: "speedometer")
                         Spacer()
                         Button(model.deviceReady ? "圆屏已连接" : "连接圆屏", systemImage: "display", action: device)
                     }.font(.subheadline)

@@ -1,0 +1,12 @@
+{
+  "source": "https://build.protomaps.com/20261031.pmtiles",
+  "sourceDate": "2026-10-31",
+  "z": 15,
+  "x": 26978,
+  "y": 12416,
+  "tileID": 1217866747,
+  "compressedBytes": 27901,
+  "plainBytes": 51950,
+  "sha256": "54eb65a45960ac50c0a971974422695da0adba68a43d72e1454b90a4ac761e12",
+  "attribution": "© OpenStreetMap contributors; Protomaps basemap, ODbL. Public fixed Beijing fixture, never user location."
+}

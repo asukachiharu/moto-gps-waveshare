@@ -14,7 +14,7 @@ struct SurroundingMapStatusRow: View {
     }
 }
 
-struct MapCity: Decodable, Identifiable, Hashable {
+struct MapCity: Decodable, Identifiable, Hashable, Sendable {
     let id: String
     let name: String
     let detail: String
@@ -33,10 +33,13 @@ final class MapCitySearch: ObservableObject {
     @Published private(set) var isSearching = false
     @Published private(set) var errorMessage: String?
     private let baseURL: URL
+    private let loader: (@MainActor (String) async throws -> [MapCity])?
     private var task: Task<Void, Never>?
     private var generation = 0
 
-    init(baseURL: URL) { self.baseURL = baseURL }
+    init(baseURL: URL, loader: (@MainActor (String) async throws -> [MapCity])? = nil) {
+        self.baseURL = baseURL; self.loader = loader
+    }
     deinit { task?.cancel() }
 
     func search() {
@@ -54,16 +57,21 @@ final class MapCitySearch: ObservableObject {
         task = Task { [weak self] in
             do {
                 try await Task.sleep(for: .milliseconds(350))
-                var request = URLRequest(url: url)
-                request.timeoutInterval = 20
-                let (data, response) = try await URLSession.shared.data(for: request)
+                let cities: [MapCity]
+                if let loader = self?.loader {
+                    cities = try await loader(keywords)
+                } else {
+                    var request = URLRequest(url: url)
+                    request.timeoutInterval = 20
+                    let (data, response) = try await URLSession.shared.data(for: request)
+                    guard let response = response as? HTTPURLResponse,
+                          response.statusCode == 200, data.count <= 1_048_576
+                    else { throw URLError(.badServerResponse) }
+                    struct Reply: Decodable { let cities: [MapCity] }
+                    cities = try JSONDecoder().decode(Reply.self, from: data).cities
+                }
                 try Task.checkCancellation()
-                guard let response = response as? HTTPURLResponse,
-                      response.statusCode == 200, data.count <= 1_048_576
-                else { throw URLError(.badServerResponse) }
-                struct Reply: Decodable { let cities: [MapCity] }
-                let reply = try JSONDecoder().decode(Reply.self, from: data)
-                let valid = reply.cities.prefix(30).filter { city in
+                let valid = cities.prefix(30).filter { city in
                     let b = city.boundsWGS84
                     return b.count == 4 && b.allSatisfy(\.isFinite) && b[0] < b[2] && b[1] < b[3] &&
                         b[0] >= -180 && b[2] <= 180 && b[1] >= -85 && b[3] <= 85
@@ -74,7 +82,7 @@ final class MapCitySearch: ObservableObject {
             } catch {
                 guard !Task.isCancelled, let self, self.generation == current else { return }
                 self.isSearching = false
-                self.errorMessage = "暂时无法搜索城市，请检查网络后重试。"
+                self.errorMessage = error.localizedDescription
             }
         }
     }
@@ -82,6 +90,7 @@ final class MapCitySearch: ObservableObject {
 
 struct MapDownloadsView: View {
     var onClose: (() -> Void)? = nil
+    var cityLoader: (@MainActor (String) async throws -> [MapCity])? = nil
     @ObservedObject var store: SurroundingMapStore
     let gatewayBaseURL: URL
     let route: [GCJ02Point]
@@ -105,7 +114,7 @@ struct MapDownloadsView: View {
                 }
                 Section {
                     NavigationLink {
-                        MapCitySearchView(store: store, baseURL: gatewayBaseURL)
+                        MapCitySearchView(store: store, baseURL: gatewayBaseURL, loader: cityLoader)
                     } label: {
                         Label("下载城市地图", systemImage: "building.2.crop.circle")
                     }
@@ -202,9 +211,9 @@ private struct MapCitySearchView: View {
     @ObservedObject var store: SurroundingMapStore
     @StateObject private var search: MapCitySearch
 
-    init(store: SurroundingMapStore, baseURL: URL) {
+    init(store: SurroundingMapStore, baseURL: URL, loader: (@MainActor (String) async throws -> [MapCity])? = nil) {
         self.store = store
-        _search = StateObject(wrappedValue: MapCitySearch(baseURL: baseURL))
+        _search = StateObject(wrappedValue: MapCitySearch(baseURL: baseURL, loader: loader))
     }
 
     var body: some View {

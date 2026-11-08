@@ -488,6 +488,11 @@ final class SurroundingMapStore: ObservableObject {
         }
     }
 
+    func changeLoader(_ loader: @escaping MapTileCache.Loader) async {
+        reset(); cancelDownload()
+        await cache.replaceLoader(loader)
+    }
+
     func changeGateway(to baseURL: URL) async {
         reset()
         cancelDownload()

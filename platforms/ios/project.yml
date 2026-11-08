@@ -10,6 +10,8 @@ options:
 packages:
   MotoNavigationCore:
     path: .
+  DirectMapCore:
+    path: ../../shared/direct_map
 
 targets:
   MotoGPS:
@@ -39,7 +41,19 @@ targets:
     dependencies:
       - package: MotoNavigationCore
         product: MotoNavigationCore
+      - package: DirectMapCore
+        product: DirectMapCore
       - sdk: libsqlite3.tbd
+    postBuildScripts:
+      - name: Copy official device SDK resources
+        basedOnDependencyAnalysis: false
+        script: |
+          if [ "$PLATFORM_NAME" != "iphoneos" ]; then exit 0; fi
+          for bundle in AMapNavi.bundle AMap.bundle; do
+            source="$SRCROOT/Vendor/Frameworks/AMapNaviKit.framework/$bundle"
+            test -d "$source" || exit 1
+            ditto "$source" "$TARGET_BUILD_DIR/$UNLOCALIZED_RESOURCES_FOLDER_PATH/$bundle"
+          done
     info:
       path: App/Info.plist
       properties:
@@ -71,10 +85,13 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: ink.yhm.MotoNav
         PRODUCT_NAME: MOTO GPS
-        MARKETING_VERSION: 0.4.0
-        CURRENT_PROJECT_VERSION: 7
+        MARKETING_VERSION: 0.4.1
+        CURRENT_PROJECT_VERSION: 8
         SWIFT_VERSION: 5.0
         SWIFT_STRICT_CONCURRENCY: targeted
+        'FRAMEWORK_SEARCH_PATHS[sdk=iphoneos*]': '$(inherited) $(SRCROOT)/Vendor/Frameworks'
+        'OTHER_LDFLAGS[sdk=iphoneos*]': '$(inherited) -ObjC -framework AMapNaviKit -framework AMapFoundationKit -framework AMapSearchKit -framework GLKit -framework OpenGLES -framework Metal -framework MetalKit -framework SystemConfiguration -framework CoreTelephony -framework Security -framework CoreMotion -framework CoreLocation -framework CoreServices -framework CallKit -framework WebKit -framework AVFoundation -framework AudioToolbox -framework CoreMedia -framework Accelerate -framework AdSupport -lz -lc++ -lsqlite3 -liconv -lresolv'
+        ENABLE_USER_SCRIPT_SANDBOXING: NO
         SWIFT_OBJC_BRIDGING_HEADER: App/MotoGPS-Bridging-Header.h
         HEADER_SEARCH_PATHS:
           - $(SRCROOT)/../../shared/ble_protocol/include

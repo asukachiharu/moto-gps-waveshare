@@ -28,8 +28,14 @@ final class AppModel: ObservableObject {
     private let bluetooth = ESP32BLECentral()
     private let liveLocation = CoreLocationNavigationSource()
     private let searchLocation = SearchLocationBiasSource()
-    private var liveRouteProvider: AmapGatewayRouteProvider
-    private var placeProvider: AmapGatewayPlaceProvider
+    @Published private(set) var navigationSource: NavigationSourceMode
+    @Published private(set) var sdkHasKey = false
+    @Published private(set) var sdkPrivacyAgreed = false
+    @Published private(set) var sdkRequiresRestart = false
+    private let directMaps: DirectPMTilesService
+    private let sdkService: AMapSDKNavigationService
+    private var liveRouteProvider: NavigationProviderRouter
+    private var placeProvider: NavigationProviderRouter
     private let mediaController = AppleMusicRemoteController()
     let surroundingMap: SurroundingMapStore
     @Published private(set) var mapGatewayBaseURL: URL
@@ -43,11 +49,24 @@ final class AppModel: ObservableObject {
     private static let recentPlacesKey = "MotoGPS.RecentPlaces.v1"
 
     init(gatewayBaseURL: URL = AppConfiguration.gatewayBaseURL) {
-        liveRouteProvider = AmapGatewayRouteProvider(baseURL: gatewayBaseURL)
-        placeProvider = AmapGatewayPlaceProvider(baseURL: gatewayBaseURL)
+        let direct = DirectPMTilesService(); directMaps = direct
+        let sdk = AMapSDKNavigationService()
+        sdkService = sdk
+        let mode: NavigationSourceMode
+        #if DEBUG
+        if ProcessInfo.processInfo.arguments.contains("--moto-provider-gateway") { mode = .gateway }
+        else { mode = NavigationSourceMode(rawValue: UserDefaults.standard.string(forKey: "MotoGPS.NavigationSource") ?? "") ?? .sdk }
+        #else
+        mode = NavigationSourceMode(rawValue: UserDefaults.standard.string(forKey: "MotoGPS.NavigationSource") ?? "") ?? .sdk
+        #endif
+        navigationSource = mode
+        let provider = NavigationProviderRouter(mode: mode, baseURL: gatewayBaseURL, sdk: sdk)
+        liveRouteProvider = provider; placeProvider = provider
         mapGatewayBaseURL = gatewayBaseURL
-        surroundingMap = SurroundingMapStore(baseURL: gatewayBaseURL)
+        let mapLoader: MapTileCache.Loader? = mode == .sdk ? { tile in try await direct.load(tile) } : nil
+        surroundingMap = SurroundingMapStore(baseURL: gatewayBaseURL, loader: mapLoader)
         recentPlaces = Self.loadRecentPlaces()
+        sdkHasKey = sdk.hasKey; sdkPrivacyAgreed = sdk.consent
 
         surroundingMap.onScene = { [weak self] scene in
             self?.bluetooth.sendMapScene(scene)
@@ -127,12 +146,44 @@ final class AppModel: ObservableObject {
         routePreviewTask?.cancel()
     }
 
-    var isNavigationServiceConfigured: Bool { isGatewayConfigured }
+    var isNavigationServiceConfigured: Bool {
+        navigationSource == .gateway ? isGatewayConfigured :
+            (sdkHasKey && sdkPrivacyAgreed && !sdkRequiresRestart && MNSearchSDKBridge.available)
+    }
+    var navigationSetupMessage: String {
+        navigationSource == .gateway ? "请先在设置中填写网关地址" : "请配置高德 iOS Key 并同意隐私说明"
+    }
+    func chooseNavigationSource(_ mode: NavigationSourceMode) async throws {
+        guard !isNavigationActive, !isUpdatingGateway else { throw GatewaySettingsError.navigationActive }
+        guard mode != navigationSource else { return }
+        isUpdatingGateway = true
+        defer { isUpdatingGateway = false }
+        clearDestination()
+        if mode == .sdk { await surroundingMap.changeLoader { [directMaps] tile in try await directMaps.load(tile) } }
+        else { await surroundingMap.changeGateway(to: mapGatewayBaseURL) }
+        navigationSource = mode
+        UserDefaults.standard.set(mode.rawValue, forKey: "MotoGPS.NavigationSource")
+        let provider = NavigationProviderRouter(mode: mode, baseURL: mapGatewayBaseURL, sdk: sdkService)
+        liveRouteProvider = provider; placeProvider = provider
+    }
+    func saveSDKSettings(key: String, consent: Bool) throws {
+        guard !isNavigationActive else { throw GatewaySettingsError.navigationActive }
+        let trimmed = key.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty || sdkHasKey else { throw AMapKeyStore.KeyError.invalid }
+        try sdkService.save(key: trimmed, consent: consent)
+        clearDestination()
+        sdkHasKey = sdkService.hasKey; sdkPrivacyAgreed = sdkService.consent
+        sdkRequiresRestart = sdkService.requiresRestart
+    }
     var mapDisplayRoutes: [RoutePreviewCandidate] {
         if isNavigationActive, let route = runtime?.activeRoutePlan { return [RoutePreviewCandidate(ordinal: 0, route: route)] }
         return routePreviewCandidates
     }
     func refreshMapLocation() { searchLocation.prepare() }
+    func searchMapCities(_ keywords: String) async throws -> [MapCity] {
+        guard navigationSource == .sdk else { throw SDKConfigurationError.configuration }
+        return try await sdkService.searchCities(keywords)
+    }
 
     var isGatewayConfigured: Bool {
         (try? GatewayConfiguration.normalizedURL(mapGatewayBaseURL.absoluteString)) != nil
@@ -146,9 +197,9 @@ final class AppModel: ObservableObject {
         isUpdatingGateway = true
         defer { isUpdatingGateway = false }
         clearDestination()
-        await surroundingMap.changeGateway(to: url)
-        liveRouteProvider = AmapGatewayRouteProvider(baseURL: url)
-        placeProvider = AmapGatewayPlaceProvider(baseURL: url)
+        if navigationSource == .gateway { await surroundingMap.changeGateway(to: url) }
+        let provider = NavigationProviderRouter(mode: navigationSource, baseURL: url, sdk: sdkService)
+        liveRouteProvider = provider; placeProvider = provider
         mapGatewayBaseURL = url
         try GatewayConfiguration.save(url.absoluteString)
     }
@@ -314,8 +365,8 @@ final class AppModel: ObservableObject {
     }
 
     func startNavigation() {
-        guard !isUpdatingGateway, isGatewayConfigured else {
-            navigationFailure = "请先在网关设置中填写服务地址"
+        guard !isUpdatingGateway, isNavigationServiceConfigured else {
+            navigationFailure = navigationSetupMessage
             return
         }
         guard let selectedPlace else {
@@ -406,8 +457,8 @@ final class AppModel: ObservableObject {
 
     func planRoutePreview() {
         guard !isNavigationActive, !isUpdatingGateway, selectedPlace != nil else { return }
-        guard isGatewayConfigured else {
-            failRoutePreview("请先在网关设置中填写服务地址")
+        guard isNavigationServiceConfigured else {
+            failRoutePreview(navigationSetupMessage)
             return
         }
         routePreviewGeneration &+= 1
@@ -507,7 +558,7 @@ final class AppModel: ObservableObject {
                 return
             } catch {
                 guard let self, !Task.isCancelled else { return }
-                self.failRoutePreview("路线规划失败，请检查网络后重试")
+                self.failRoutePreview(error.localizedDescription)
             }
         }
     }
@@ -537,10 +588,10 @@ final class AppModel: ObservableObject {
         placeSearchTask?.cancel()
         placeSearchFailure = nil
 
-        guard !isUpdatingGateway, isGatewayConfigured else {
+        guard !isUpdatingGateway, isNavigationServiceConfigured else {
             placeResults = []
             isSearchingPlaces = false
-            if query.count >= 2 { placeSearchFailure = "请先在网关设置中填写服务地址" }
+            if query.count >= 2 { placeSearchFailure = navigationSetupMessage }
             return
         }
         guard query.count >= 2 else {
@@ -583,7 +634,7 @@ final class AppModel: ObservableObject {
                 guard let self, !Task.isCancelled else { return }
                 self.placeResults = []
                 self.isSearchingPlaces = false
-                self.placeSearchFailure = "地点搜索失败，请检查网络后重试"
+                self.placeSearchFailure = error.localizedDescription
             }
         }
     }

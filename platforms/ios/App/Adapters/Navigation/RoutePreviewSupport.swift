@@ -47,7 +47,8 @@ struct RoutePreviewCandidate: Identifiable, Equatable {
         let affectedShare = (weighted.slow + weighted.congested) / route.totalDistanceM
         if congestedShare >= 0.12 { return "拥堵较多" }
         if affectedShare >= 0.18 { return "部分路段缓行" }
-        return "路况顺畅"
+        let known = route.traffic.filter { $0.level != .unknown }.reduce(0.0) { $0 + max(0, $1.endOffsetM - $1.startOffsetM) }
+        return known >= route.totalDistanceM * 0.9 ? "路况顺畅" : "部分路况未知"
     }
 }
 

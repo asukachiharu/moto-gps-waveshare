@@ -13,6 +13,7 @@ with zipfile.ZipFile(sys.argv[1]) as archive:
     root = info_path.removesuffix('Info.plist')
     info = plistlib.loads(archive.read(info_path))
     assert info['CFBundlePackageType'] == 'APPL'
+    assert not any('amap' in key.lower() and 'key' in key.lower() for key in info), 'Runtime Key must not be bundled'
     assert info['CFBundleSupportedPlatforms'] == ['iPhoneOS'], 'Must be a device build'
     assert info['MOTOGPSGatewayBaseURL'] == 'https://example.invalid/moto-gps/api/', 'Do not ship a private gateway'
     assert {'location', 'bluetooth-central'} <= set(info['UIBackgroundModes'])
@@ -22,6 +23,9 @@ with zipfile.ZipFile(sys.argv[1]) as archive:
     for resource in ['PrivacyInfo.xcprivacy', 'NOTICE', 'LICENSE.md', 'THIRD_PARTY_NOTICES.md', 'jinan-v1.sqlite']:
         assert root + resource in names, f'Missing {resource}'
     binary = archive.read(root + info['CFBundleExecutable'])
+    if info['CFBundleShortVersionString'] == '0.4.1':
+        for bundle in ['AMap.bundle/', 'AMapNavi.bundle/']:
+            assert any(p.startswith(root + bundle) for p in names), f'Missing SDK resource {bundle}'
     magic, cpu = struct.unpack_from('<II', binary)
     assert magic == 0xFEEDFACF and cpu == 0x0100000C, 'Expected arm64 Mach-O'
     commands = struct.unpack_from('<I', binary, 16)[0]

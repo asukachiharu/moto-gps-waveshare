@@ -94,12 +94,17 @@ struct ContentView: View {
         case .device: MapDevicePanel(model: model)
         case .settings: NavigationSettingsPanel(model: model)
         case .downloads:
-            MapDownloadsView(onClose: { open(.home) }, store: model.surroundingMap, gatewayBaseURL: model.mapGatewayBaseURL,
+            MapDownloadsView(onClose: { open(.home) }, cityLoader: citySearchLoader,
+                             store: model.surroundingMap, gatewayBaseURL: model.mapGatewayBaseURL,
                              route: model.mapDownloadRoute, destinationName: model.selectedPlace?.name)
         case .privacy: DataUseView(onClose: { open(.home) })
         }
     }
     private var colorScheme: ColorScheme? { appearance == "light" ? .light : appearance == "dark" ? .dark : nil }
+    private var citySearchLoader: (@MainActor (String) async throws -> [MapCity])? {
+        guard model.navigationSource == .sdk else { return nil }
+        return { query in try await model.searchMapCities(query) }
+    }
     private func open(_ destination: MapPanel) {
         panel = destination
         detent = destination == .home ? (model.isNavigationActive ? .height(116) : .medium) : .large

@@ -6,7 +6,7 @@ import XCTest
     override func setUpWithError() throws { continueAfterFailure = false }
     func testNoRouteCannotStartNavigationOrDemo() {
         let app = XCUIApplication()
-        app.launchArguments = ["--moto-ui-offline", "--moto-reset-gateway"]
+        app.launchArguments = ["--moto-ui-offline", "--moto-provider-gateway", "--moto-reset-gateway"]
         app.launch()
         XCTAssertTrue(app.buttons["open-search"].waitForExistence(timeout: 15))
         XCTAssertFalse(app.buttons["primary-navigation-action"].exists)
@@ -15,7 +15,7 @@ import XCTest
     }
     func testLargeTextHomeKeepsSearchReachable() {
         let app = XCUIApplication()
-        app.launchArguments = ["--moto-ui-offline", "--moto-reset-gateway", "-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXXL"]
+        app.launchArguments = ["--moto-ui-offline", "--moto-provider-gateway", "--moto-reset-gateway", "-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXXL"]
         app.launch()
         let search = app.buttons["open-search"]
         XCTAssertTrue(search.waitForExistence(timeout: 15)); XCTAssertTrue(search.isHittable)
