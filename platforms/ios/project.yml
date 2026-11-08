@@ -86,7 +86,7 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: ink.yhm.MotoNav
         PRODUCT_NAME: MOTO GPS
         MARKETING_VERSION: 0.4.1
-        CURRENT_PROJECT_VERSION: 8
+        CURRENT_PROJECT_VERSION: 9
         SWIFT_VERSION: 5.0
         SWIFT_STRICT_CONCURRENCY: targeted
         'FRAMEWORK_SEARCH_PATHS[sdk=iphoneos*]': '$(inherited) $(SRCROOT)/Vendor/Frameworks'

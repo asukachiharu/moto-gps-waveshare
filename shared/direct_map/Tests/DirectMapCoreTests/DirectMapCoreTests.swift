@@ -6,7 +6,8 @@ final class DirectMapCoreTests: XCTestCase {
         let url = try XCTUnwrap(Bundle.module.url(forResource: "beijing-z15.mvt", withExtension: "gz", subdirectory: "Fixtures"))
         let compressed = try Data(contentsOf: url)
         let data = try MapBinary.decompress(compressed, compression: 2)
-        let tile = try MapTileID.containing(Coordinate(latitude: 39.9042, longitude: 116.4074))
+        // Exact tile address recorded in the public fixture source.json.
+        let tile = try MapTileID(z: 15, x: 26978, y: 12416)
         let features = try VectorMapTile.decode(data, tile: tile)
         XCTAssertTrue(features.contains { $0.kind == 5 }); XCTAssertTrue(features.contains { $0.kind < 5 })
         XCTAssertTrue(features.flatMap(\.coordinates).allSatisfy(\.isValid))
