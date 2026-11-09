@@ -68,3 +68,12 @@ private Key. SHA256 ca8052341b74c9605fbdc31ad1b97887f219f456048c445bf59bdec186d5
 ESP package 0.2.1 is compiled, not flashed, and includes its actual resolved
 dependency lock and component licences. Generated local lock was restored to
 the repository version. Real iPhone/ESP background and navigation remain untested.
+
+Final map review found that changing heading follow during a ride required
+another recenter action. The coordinator now applies a changed requested mode
+immediately while preserving manual pans across ordinary GPS ticks. Route
+selection explicitly labels driving routes; motorcycle restrictions remain
+unsupported. Build number advances to 10 for these production UI corrections.
+Run 42618875354's device job failed before compilation because the official
+AMap download connection timed out. The previously verified build 9 remains
+available; it is not represented as a new build 10 artifact.

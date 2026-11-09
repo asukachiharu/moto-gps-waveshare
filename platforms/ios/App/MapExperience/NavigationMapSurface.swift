@@ -28,8 +28,10 @@ struct NavigationMapSurface: UIViewRepresentable {
     func updateUIView(_ map: MKMapView, context: Context) {
         let owner = context.coordinator
         let tracking: MKUserTrackingMode = followsHeading && model.isNavigationActive ? .followWithHeading : .follow
-        if owner.recenterID != recenterID || owner.wasNavigating != model.isNavigationActive {
+        if owner.recenterID != recenterID || owner.wasNavigating != model.isNavigationActive ||
+            owner.requestedTrackingMode != tracking {
             owner.recenterID = recenterID; owner.wasNavigating = model.isNavigationActive
+            owner.requestedTrackingMode = tracking
             map.setUserTrackingMode(tracking, animated: !reduceMotion)
         }
         let candidates = model.mapDisplayRoutes
@@ -76,6 +78,9 @@ struct NavigationMapSurface: UIViewRepresentable {
         var signature = ""
         var recenterID = -1
         var wasNavigating = false
+        // Track the requested setting rather than the map's live mode. A pan
+        // can disable live following; GPS ticks must not undo that gesture.
+        var requestedTrackingMode: MKUserTrackingMode?
         var selectedID: String?
         var hasPresentedRoute = false
 

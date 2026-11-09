@@ -8,7 +8,7 @@ struct NavigationRoutePanel: View {
                 HStack {
                     VStack(alignment: .leading, spacing: 5) {
                         Text(model.selectedPlace?.name ?? "目的地").font(.title3.bold())
-                        Label("从我的位置出发", systemImage: "location.fill").font(.subheadline).foregroundStyle(.secondary)
+                        Label("驾车路线 · 从我的位置出发", systemImage: "location.fill").font(.subheadline).foregroundStyle(.secondary)
                     }
                     Spacer()
                     Button("更换目的地", systemImage: "xmark") { model.clearDestination() }
