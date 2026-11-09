@@ -31,6 +31,12 @@ jobs:
           swift test --package-path platforms/ios
           if [ -d shared/direct_map ]; then swift test --package-path shared/direct_map; fi
           xcodegen generate --spec platforms/ios/project.yml
+          python3 - <<'PY'
+          import xml.etree.ElementTree as ET
+          scheme = ET.parse('platforms/ios/MotoGPS.xcodeproj/xcshareddata/xcschemes/MotoGPS.xcscheme')
+          args = scheme.findall('./TestAction/CommandLineArguments/CommandLineArgument')
+          assert any(a.get('argument') == '--moto-ui-offline' and a.get('isEnabled') == 'YES' for a in args), 'Test host must disable live permissions/services'
+          PY
       - name: Select available iPhone simulator
         id: simulator
         run: |
@@ -43,6 +49,8 @@ jobs:
           with open(os.environ['GITHUB_OUTPUT'], 'a') as out:
               out.write('id=' + next((d for d in iphones if d['name'] == 'iPhone Duo'), iphones[0])['udid'] + '\n')
           PY
+      - name: Wait for simulator startup
+        run: xcrun simctl bootstatus '${{ steps.simulator.outputs.id }}' -b
       - name: App unit tests and offline gateway UI tests
         run: |
           xcodebuild test -project platforms/ios/MotoGPS.xcodeproj -scheme MotoGPS \

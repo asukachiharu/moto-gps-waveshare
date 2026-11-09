@@ -149,6 +149,10 @@ schemes:
       config: Release
     test:
       config: Debug
+      # App-hosted unit tests also launch the app. Suppress permissions and
+      # live services there, just as the UI tests already do explicitly.
+      commandLineArguments:
+        "--moto-ui-offline": true
       targets:
         - MotoGPSUnitTests
         - MotoGPSUITests

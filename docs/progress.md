@@ -51,3 +51,20 @@ Cloud 42489142475: Swift core and DirectMapCore tests passed on Swift 6.
 Device and simulator app builds caught a closure type-inference failure and
 a concrete gateway type remaining in the explicit demo adapter. Both were
 corrected before resubmission. No passing IPA is claimed for this failed run.
+
+2026-11-09 resume: run 42490382267 produced the verified unsigned arm64 IPA
+0.4.1 (9); Source checks 42490382107 passed all four jobs. App unit tests
+passed 49/49 and offline UI tests passed 7/8, including SDK Key rejection,
+sheet collapse, theme changes and large text. The first UI launch failed
+before interaction with "does not have a process ID"; subsequent logs show
+media/location permission alerts from the earlier app-hosted unit-test launch.
+The test scheme now passes the existing offline flag to that host too, and
+CI waits for simulator boot. No retry hides failures. Release app code and
+firmware are unchanged by this test-environment correction; rerun pending.
+
+Local distribution checks: IPA Bundle ID ink.yhm.MotoNav, official SDK bundles,
+unsigned/unencrypted device binary, no embedded signing assets and no supplied
+private Key. SHA256 ca8052341b74c9605fbdc31ad1b97887f219f456048c445bf59bdec186d547b6.
+ESP package 0.2.1 is compiled, not flashed, and includes its actual resolved
+dependency lock and component licences. Generated local lock was restored to
+the repository version. Real iPhone/ESP background and navigation remain untested.
