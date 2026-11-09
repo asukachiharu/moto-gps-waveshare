@@ -3,6 +3,10 @@
 This build belongs to `asukachiharu/moto-gps-waveshare`, based on Maler X's
 upstream project. It is separate from the previous MotoNav firmware/protocol.
 
+当前交付：iOS 0.4.1（10）/ ESP 0.2.1。iPhone 编译、49 项 App 单元测试、
+8 项离线界面测试及共享核心检查通过。测试记录：
+https://github.com/asukachiharu/moto-gps-waveshare/actions/runs/42619576773
+
 ## 安装与设置
 
 1. 用之前的签名工具安装 unsigned IPA，保留 Bundle ID `ink.yhm.MotoNav`。

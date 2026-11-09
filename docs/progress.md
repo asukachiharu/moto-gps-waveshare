@@ -77,3 +77,21 @@ unsupported. Build number advances to 10 for these production UI corrections.
 Run 42618875354's device job failed before compilation because the official
 AMap download connection timed out. The previously verified build 9 remains
 available; it is not represented as a new build 10 artifact.
+
+2026-11-09 delivery: code snapshot 45863b6 passed Source checks 42619576805
+(native/data, Swift core, gateway/Workers and Android) and iOS run 42619576773.
+App unit tests passed 49/49; offline iPhone Duo UI tests passed 8/8, including
+the previously failing initial gateway launch and SDK Key input validation.
+Swift 6 DirectMapCore fixture/corruption tests also passed. The last SDK UI
+case took 255 seconds on this simulator; this run is not a performance or
+real-device navigation certification. No automatic retry concealed failures.
+
+Delivered unsigned arm64 iPhone IPA 0.4.1 (10), Bundle ID ink.yhm.MotoNav,
+contains official SDK resources and no supplied private Key or signing assets.
+IPA SHA256: d643c8699692ca44e5dd1284ec751f6e48a2e0507b826d58d9eb6b93e3da2593.
+Matching Waveshare 1.75C firmware package 0.2.1 SHA256:
+263357ea4e2239a730ee7abef62b75ba981ee2f9d3b7f6d2611dd5a17312bee6.
+Firmware build was verified with ESP-IDF 5.5.5 on 2026-11-08; no firmware
+source changed afterward, no hardware was flashed, and no certificates were
+installed. Installation and the remaining phone/round-screen checks are in
+docs/ios-fork-install.md. The previous MotoNav checkout and user backups remain.
